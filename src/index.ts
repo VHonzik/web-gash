@@ -1,7 +1,9 @@
-export { CommandColored, Terminal } from "./Gash";
+export { Terminal } from "./Gash";
 export * from "./components/Line";
-export { Colored, ColoredProps } from "./components/Colored";
-export { default as ICommand, AutoCompleteResultType, AutoCompleteResult, ParsingFailureReason, ParsingResult} from './ICommand';
+export { Colored, CommandColored } from "./components/Colored";
+export type { ColoredProps } from "./components/Colored";
+export { AutoCompleteResultType, ParsingFailureReason } from './ICommand';
+export type { default as ICommand, AutoCompleteResult, ParsingResult} from './ICommand';
 export * from './Parsers';
 
 import { Gash } from './Gash';

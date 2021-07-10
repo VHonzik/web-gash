@@ -47,3 +47,10 @@ export function Colored(props: ColoredProps) {
     <span style={style}>{children}</span>
   );
 }
+
+/**
+ * Text styled to look as a built-in commands references
+ */
+export function CommandColored(props: { children?: React.ReactNode }): JSX.Element {
+  return <Colored {...props} foreground={cyan600} />;
+}
