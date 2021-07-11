@@ -469,15 +469,35 @@ export function Output() {
   );
 }
 
-// TODO add the content as prop and expose those in terminal component
-function Prompt() {
-  return <span>$ </span>
+/** Optional properties of the terminal's prompt. */
+export interface PromptProps {
+  /**
+   * Prompt text, i.e. text that will be rendered in the input line before users input. Defaults to `$ `.
+   */
+  promptText?: string
 }
 
-// TODO expose those in terminal component
-interface CursorProps {
+export function Prompt(props: PromptProps) {
+  let text = '$ ';
+  if (props.promptText !== undefined) {
+    text = props.promptText;
+  }
+  return <span>{text}</span>
+}
+
+/** Optional properties of the terminal's cursor. */
+export interface CursorProps {
+  /**
+   * Symbol that will represent the cursor. Defaults to `_`.
+   */
   symbol?: string;
+  /**
+   * How many times per second the cursor will blink meaning, i.e. toggle it's visibility. Defaults to 3 or visibility flip every 1.0/3.0 seconds.
+   */
   blinkPerSecond?: number;
+  /**
+   * Whether to display the cursor under the text. Implemented via `position: 'absolute'`. Defaults to true.
+   */
   underText?: boolean;
 }
 
@@ -506,7 +526,7 @@ function Cursor(props: CursorProps) {
     styles = {...styles, visibility: 'hidden'};
   }
 
-  if (underText) {
+  if (underText == undefined || underText) {
     styles = {...styles, position: 'absolute'};
   }
 
@@ -528,15 +548,19 @@ function Cursor(props: CursorProps) {
   );
 }
 
-function InputText() {
+interface InputTextProps {
+  cursor?: CursorProps
+}
+
+function InputText(props: InputTextProps) {
   function renderInput() : JSX.Element {
     if (GashImpl.hasInput()) {
       return (
-        <span>{GashImpl.preCursorInput()}<Cursor underText />{GashImpl.postCursorInput()}</span>
+        <span>{GashImpl.preCursorInput()}<Cursor {...props.cursor} />{GashImpl.postCursorInput()}</span>
       )
     } else {
       return (
-        <span><Cursor /></span>
+        <span><Cursor {...props.cursor}/></span>
       )
     };
   }
@@ -564,7 +588,12 @@ function InputText() {
   );
 }
 
-export function Input() {
+export interface InputProps {
+  prompt?: PromptProps
+  cursor?: CursorProps
+}
+
+export function Input(props: InputProps) {
   const [inputShown, setInputShown] = useState(true);
 
   useEffect(() => {
@@ -580,7 +609,7 @@ export function Input() {
 
   return (
     <div style={{maxWidth: '100%', wordWrap: 'break-word', display: inputShown ? 'block' : 'none', marginBottom: '20px'}}>
-      <Prompt /><InputText />
+      <Prompt {...props.prompt} /><InputText cursor={props.cursor}/>
     </div>
   );
 }

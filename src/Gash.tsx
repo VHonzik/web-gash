@@ -10,7 +10,7 @@
 import ICommand from "./ICommand";
 import IKeyword, { IKeywordGroup } from "./IKeyword";
 import React from "react";
-import { GashImpl, Input, Output, TerminalScroller } from "./GashImp";
+import { CursorProps, GashImpl, Input, Output, PromptProps, TerminalScroller } from "./GashImp";
 
 /**
  * Main entry point to Gash library.
@@ -123,6 +123,14 @@ export interface IGash {
  */
 export const Gash:IGash = GashImpl;
 
+/** Optional React properties of the terminal */
+export interface TerminalProps {
+  /** Properties of the terminal's prompt, see `PromptProps` */
+  prompt?: PromptProps
+  /** Properties of the terminal's cursor, see `CursorProps` */
+  cursor?: CursorProps
+}
+
 /**
  * Main React component of the Gash library representing a terminal.
  *
@@ -131,7 +139,7 @@ export const Gash:IGash = GashImpl;
  * The styling is using Inconsolata Google font which is not packed with Gash. You can add it to your project for example with the following css link:
  * `@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');`
  */
-export function Terminal() {
+export function Terminal(props: TerminalProps) {
   const style:React.CSSProperties = {
     textAlign: 'left',
     backgroundColor: '#050505',
@@ -147,7 +155,7 @@ export function Terminal() {
   return (
     <div style={style}>
       <Output />
-      <Input />
+      <Input prompt={props.prompt} cursor={props.cursor}/>
       <TerminalScroller />
     </div>
   );
