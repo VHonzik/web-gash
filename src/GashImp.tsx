@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Colored, CommandColored, cyan600 } from './components/Colored';
+import { black900, Colored, CommandColored, cyan600 } from './components/Colored';
 import { Line } from './components/Line';
 import { Emitter, Unsubscribe } from './Events';
 import { IGash } from './Gash';
@@ -367,14 +367,14 @@ class Man implements ICommand  {
 
   printManPage(): void {
     const synopsisLines: JSX.Element[] = [
-      <Line><CommandColored>man</CommandColored> <Colored foreground={'black'} background={cyan600}>command</Colored></Line>,
+      <Line><CommandColored>man</CommandColored> <Colored foreground={black900} background={cyan600}>command</Colored></Line>,
     ];
 
     let colors: React.ReactNode = <CommandColored>cyan</CommandColored>;
     let keywordColors: React.ReactNode[] = [];
 
     for (const keywordGroup of GashImpl.keywordGroups) {
-      synopsisLines.push(<Line><CommandColored>man</CommandColored> <Colored foreground={'black'} background={keywordGroup.color}>{keywordGroup.placeholderName}</Colored></Line>);
+      synopsisLines.push(<Line><CommandColored>man</CommandColored> <Colored foreground={black900} background={keywordGroup.color}>{keywordGroup.placeholderName}</Colored></Line>);
       keywordColors.push(<Colored foreground={keywordGroup.color}>{keywordGroup.colorName}</Colored>);
     }
 
@@ -514,7 +514,7 @@ function Cursor(props: CursorProps) {
   }
 
   if (underText === undefined) {
-    underText = false;
+    underText = true;
   }
 
   let styles: React.CSSProperties = {
@@ -526,7 +526,7 @@ function Cursor(props: CursorProps) {
     styles = {...styles, visibility: 'hidden'};
   }
 
-  if (underText == undefined || underText) {
+  if (underText) {
     styles = {...styles, position: 'absolute'};
   }
 

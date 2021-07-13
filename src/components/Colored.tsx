@@ -12,6 +12,7 @@ export const lightBlue600 = '#039be5';
 export const red600 = '#e53935';
 export const yellow600 = '#fdd835';
 export const white0 = '#ffffff';
+export const black900 = '#000000';
 
 export interface ColoredProps {
   /**
@@ -19,7 +20,7 @@ export interface ColoredProps {
    */
   foreground: string;
   /**
-   * Background color of the content of this component. Implemented using CSS `backgroundColor`. If not specified the CSS property is not used.
+   * Background color of the content of this component. Implemented using CSS `backgroundColor`. If not specified the CSS property is not used. Note that default styling of terminal has black background color.
    */
   background?: string;
   children?: React.ReactNode,
