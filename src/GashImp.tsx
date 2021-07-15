@@ -197,6 +197,10 @@ export class GashImp implements IGash {
 
   /* Character buffer */
 
+  public clearCharacterBuffer(): void {
+    this.startCharacterBufferLine();
+  }
+
   private startCharacterBufferLine(): void {
     this.currentCharacterBufferInput = '';
     this.currentCharacterBufferIndex = 0;
@@ -501,7 +505,7 @@ export interface CursorProps {
   underText?: boolean;
 }
 
-function Cursor(props: CursorProps) {
+export function Cursor(props: CursorProps) {
   const [visible, setVisible] = useState(true);
   let {symbol, blinkPerSecond, underText } = props;
 
@@ -548,11 +552,11 @@ function Cursor(props: CursorProps) {
   );
 }
 
-interface InputTextProps {
+export interface InputTextProps {
   cursor?: CursorProps
 }
 
-function InputText(props: InputTextProps) {
+export function InputText(props: InputTextProps) {
   function renderInput() : JSX.Element {
     if (GashImpl.hasInput()) {
       return (

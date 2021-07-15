@@ -1,16 +1,9 @@
-// import { Colored, cyan600 } from "./components/Colored";
-// import { AutoCompleteTextParam, CommandAutoCompleter, CommandBodyLikeParse, CommandParser, TextParameter } from "./Parsers";
-// import ICommand, { AutoCompleteResult, AutoCompleteResultType, ParsingFailureReason, ParsingResult } from "./ICommand";
-// import { Emitter, Unsubscribe } from "./Events";
-// import IKeyword, { IKeywordGroup } from "./IKeyword";
-// import { Line } from "./components/Line";
-// import React, { useEffect, useRef, useState } from "react";
-// import { GashImpl, Input, Output, TerminalScroller } from "./GashImp";
-
 import ICommand from "./ICommand";
 import IKeyword, { IKeywordGroup } from "./IKeyword";
 import React from "react";
 import { CursorProps, GashImpl, Input, Output, PromptProps, TerminalScroller } from "./GashImp";
+
+export type { CursorProps, PromptProps, } from "./GashImp";
 
 /**
  * Main entry point to Gash library.
@@ -87,7 +80,7 @@ export interface IGash {
     * @remarks
     * The input starts enabled upon Gash initialization.
     * User has no built-in way to re-enabled a disabled input so it is best disabled only temporarily.
-    * Can be useful for giving impression on time passing together with animated temporary lines.
+    * Can be useful for giving impression of time passing together with animated temporary lines.
     *
     * @param enable Whether to enable the input - `true` or disable it - `false`.
     */

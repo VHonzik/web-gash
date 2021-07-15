@@ -1,4 +1,5 @@
 export { Terminal } from "./Gash";
+export type { TerminalProps, CursorProps, PromptProps } from './Gash';
 export * from "./components/Line";
 
 export { Colored, CommandColored, } from "./components/Colored";

@@ -19,7 +19,7 @@ export class Emitter<Events extends EventDictionary> {
     const listeners: Events[K][] | undefined = this.events[event];
     if (listeners !== undefined) {
       for (const listener of listeners) {
-        listener(args);
+        listener(...args);
       }
     }
   }
