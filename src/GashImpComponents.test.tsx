@@ -1,7 +1,8 @@
 import '@testing-library/jest-dom'
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor} from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
-import { Prompt, Cursor, InputText, GashImpl, Input } from './GashImp';
+import { Line } from './components/Line';
+import { Prompt, Cursor, InputText, GashImpl, Input, Output } from './GashImp';
 
 describe('Prompt component', function() {
   it('renders props promptText', function() {
@@ -75,7 +76,7 @@ describe('Input component', function() {
   });
   it('is hidden when input is disabled and shown when enabled again', async function() {
     act(() => {
-      render(<Input cursor={{symbol: 'Foo'}} prompt={{promptText: 'Bar'}} />);
+      render(<Input prompt={{promptText: 'Bar'}} />);
     });
     // Prompt is direct child of input
     const inputElement = screen.getByText(/Bar/i).closest('div');
@@ -93,5 +94,50 @@ describe('Input component', function() {
     });
 
     expect(inputElement).toBeVisible();
+  });
+});
+
+describe('Output component', function() {
+  it('displays written lines', function() {
+    act(() => {
+      render(<Output />);
+    });
+
+    act(() => {
+      GashImpl.writeLine(<Line>Foo</Line>);
+    });
+
+    const outputLineElement = screen.getByText(/Foo/i);
+    expect(outputLineElement).toBeInTheDocument();
+  });
+  it('displays temp lines', function() {
+    act(() => {
+      render(<Output />);
+    });
+
+    act(() => {
+      GashImpl.writeTempLine(<Line>Bar</Line>, 0);
+    });
+
+    const outputLineElement = screen.getByText(/Bar/i);
+    expect(outputLineElement).toBeInTheDocument();
+  });
+  it('clears temp lines', function() {
+    act(() => {
+      render(<Output />);
+    });
+
+    act(() => {
+      GashImpl.writeTempLine(<Line>Bar</Line>, 0);
+    });
+
+    const outputLineElement = screen.getByText(/Bar/i);
+    expect(outputLineElement).toBeInTheDocument();
+
+    act(() => {
+      GashImpl.clearTempLines();
+    });
+
+    expect(screen.queryByText(/Bar/i)).not.toBeInTheDocument();
   });
 });

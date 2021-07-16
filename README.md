@@ -22,7 +22,7 @@ This library is a port and successor to my .NET core [gash](https://github.com/V
 I suggest starting with Typescript template of [Create React App](https://create-react-app.dev/docs/getting-started#creating-a-typescript-app).
 
 ### Installation
-Install the package with npm: `npm install web-gash`
+You can install the package with npm: `npm install web-gash`
 
 ### Set-up
 
@@ -60,5 +60,5 @@ function App() {
 }
 ```
 
-And that's it, once you start the app you will see a full-screen styled terminal and you can start calling commands such as `man man` and play around with Tab auto-completion. Next step is adding your own commands and keywords: TODO
+And that's it, once you start the app you will see a full-screen styled terminal and you can start calling commands such as `man man` and play around with Tab auto-completion or command history. Next step is adding your own commands and keywords, see [this documentation page](./Commands.md).
 

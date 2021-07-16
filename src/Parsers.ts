@@ -57,7 +57,7 @@ function longOption() {
  * Low level parser interface for parser combinators.
  *
  * @remarks
- * Unless you need to implement your own parser it is recommended to use the provided `TextParameter`, `S`ingleWordTextParameter`, `NumberParameter` that return this interface.
+ * Unless you need to implement your own parser it is recommended to use the provided `TextParameter`, `SingleWordTextParameter`, `NumberParameter` that return this interface.
  */
 export interface LowLevelParser {
   /**

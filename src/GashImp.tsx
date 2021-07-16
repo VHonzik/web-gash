@@ -141,6 +141,9 @@ export class GashImp implements IGash {
     } else if (!resultData.success && resultData.failureReason === ParsingFailureReason.MissingParam) {
       this.writeLine(<Line systemMessage>Missing required param(s) for a command. See <CommandColored>man {resultData.command}</CommandColored>.</Line>);
       this.writeLine(<Line />);
+    } else if (!resultData.success && resultData.failureReason === ParsingFailureReason.UnrecognizedOption) {
+      this.writeLine(<Line systemMessage>Unknown option for a command. See <CommandColored>man {resultData.command}</CommandColored>.</Line>);
+      this.writeLine(<Line />);
     }
   }
 

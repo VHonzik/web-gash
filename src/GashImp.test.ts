@@ -4,16 +4,6 @@ import IKeyword, { IKeywordGroup } from "./IKeyword";
 
 const mockCommandName: string = 'mock';
 
-// const parsingSuccess: ParsingResult = {
-//   success: true,
-//   command: mockCommandName,
-// };
-
-// const autoCompletionSuccess: AutoCompleteResult = {
-//   type: AutoCompleteResultType.SingleMatchFound,
-//   fixedValue: mockCommandName,
-// };
-
 class MockCommand implements ICommand {
   name: string = mockCommandName;
 
@@ -92,4 +82,6 @@ describe('GashImpl', function() {
     expect(gash.keywordGroups).toHaveLength(1);
     expect(gash.keywordGroups[0].placeholderName).toBe(mockKeywordGroupName);
   });
-})
+});
+
+// TODO check order of command's parse execution

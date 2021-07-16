@@ -129,7 +129,7 @@ export interface TerminalProps {
  *
  * @remarks
  * By default it is already styled including taking up the whole window.
- * The styling is using Inconsolata Google font which is not packed with Gash. You can add it to your project for example with the following css link:
+ * The styling is using Inconsolata Google font which is not packed with Gash. You can add it to your project, for example, with the following css link:
  * `@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');`
  */
 export function Terminal(props: TerminalProps) {
