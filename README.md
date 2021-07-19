@@ -1,5 +1,8 @@
 # web-gash
 
+[![npm version](https://badge.fury.io/js/web-gash.svg)](https://badge.fury.io/js/web-gash)
+[![Build Status](https://travis-ci.com/VHonzik/web-gash.svg?branch=main)](https://travis-ci.com/VHonzik/web-gash)
+
 Acronym for game-again shell, borrowing the pun from [Bash (Unix shell)](https://en.wikipedia.org/wiki/Bash_(Unix_shell)), *web-gash* is a JS library for web console games.
 
 This library is a port and successor to my .NET core [gash](https://github.com/VHonzik/gash) library.
