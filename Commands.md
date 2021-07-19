@@ -74,20 +74,24 @@ class ScanCommand implements ICommand {
 
 Feel free to browse the comments on `CommandParser` and related parser interfaces and if you are not familiar with the functional parser combinators I would recommend looking into that topic, it's an interesting one. A good place to start might be the documentations of [masala parser](https://github.com/masala/masala-parser) which the *gash* library is using under the hood. You can also implement your own parsers by implementing `LowLevelParser` interface but that is outside of the scope of this guide.
 
-Note that `CommandParser` does impose a grammar on the commands, roughly `commandBody options parameters` in that order. The `commandBody` will simply parse the input line for `ICommand.name`. Options are either short: `-a` or long `--foo-bar`, are always optional but unknown option will result in parsing failure. Parameters are defined by a chain of `LowLevelParser` including "high-order" parsers such as `.then()`, `or()`, `optional()`, `repeat()`.
+Note that `CommandParser` does impose a grammar on the commands, roughly `commandBody options parameters` in that order. The `commandBody` will simply parse the input line for `ICommand.name`. Options are either short: `-a` or long `--foo-bar`, are always optional but unknown option will result in parsing failure. Parameters are defined by a chain of `LowLevelParser` including "high-order" parsers such as `.then()`, `.or()`, `.optional()`, `.repeat()`.
 
 As mentioned before the implementations of the commands decide if the input line matches the command syntax. *gash* only looks at the resulting `ParsingResult` and acts in the following scenarios:
- - Not one command succeeded and all returned `ParsingFailureReason.WrongCommand` as the reason of failure
- - One command fails and returns `ParsingFailureReason.MissingParam` as the reason
- - One command fails and returns `ParsingFailureReason.UnrecognizedOption` as the reason
+ - Not one command succeeded and all the commands returned `ParsingFailureReason.WrongCommand` as the reason for the failure
+ - Any command fails and returns `ParsingFailureReason.MissingParam` as the reason
+ - Any command fails and returns `ParsingFailureReason.UnrecognizedOption` as the reason
 
 In all these cases a an error message is presented to the player and nothing happens.
 
-As you can see in the above example *gash* also does not call the command back if it succeeds. It's up to to the command implementation to perform the game logic inside the `parse()` method if it deems the input line matching and all parameters have valid values. That is important concept so let me stress it out: **Command itself knows if the input line matches its syntax so the actual command execution should be done in the `parse()` method itself.** A common pattern that emerges from this, which can also be seen in the above example, `const result = CommandParser(...).parse(line);` => `if (result.success)` => check the parameters => if all looks good execute the command => finally `return result;`.
+As you can see in the above example *gash* also does not call the command back if it succeeds. It's up to to the command implementation to perform the game logic inside the `parse()` method if it deems the input line matching and all parameters have valid values. That is important concept so let me stress it out:
+
+**Command itself knows if the input line matches its syntax so the actual command execution should be done in the `parse()` method itself.**
+
+A common pattern that emerges from this, which can also be seen in the above example, `const result = CommandParser(...).parse(line);` => `if (result.success)` => check the parameters => if all looks good execute the command => finally `return result;`.
 
 ### autocomplete()
 
-Auto-completion is similar scenario to `parse()` method but less complicated. *gash* once again calls all registered commands `autocomplete()` methods when the player presses Tab key. However there are no early breaks this time around. If there is only one command that returned `AutoCompleteResultType.SingleMatchFound` or `AutoCompleteResultType.MultipleMatchesFound` the input line will be replaced by the `AutoCompleteResult.fixedValue`. Of course, helper parsers for auto-completion are also provided. Here is an example:
+Auto-completion is similar scenario to `parse()` method but less complicated. *gash* once again calls all registered commands `autocomplete()` methods when the player presses Tab key. However, there are no early breaks this time around. If there is only one command that returned `AutoCompleteResultType.SingleMatchFound` or `AutoCompleteResultType.MultipleMatchesFound` the input line will be replaced by the `AutoCompleteResult.fixedValue`. Of course, helper parsers for auto-completion are also provided. Here is an example:
 
 ```js
 import Gash, { AutoCompleteKeywords, AutoCompleteNumber, AutoCompleteResult, ICommand, CommandAutoCompleter } from "web-gash";
@@ -105,7 +109,7 @@ class ScanCommand implements ICommand {
 }
 ```
 
-What's noteworthy is that unlike in the `parse()` method where we are parsing parameters as generic strings and only afterwards check their values, auto-completion is usually only done for known values. In this case specifically a collection of `IKeyword`s. The same recommendation about combinator parsers apply for the `autocomplete()` but note that the auto-completion parsers are not as powerful as `parse()` parsers.
+What's noteworthy is that unlike in the `parse()` method where we are parsing parameters as generic strings and only afterwards check their values, auto-completion is usually only done for a set of known values. In this case specifically a collection of `IKeyword`s. The same recommendation about combinator parsers apply for the `autocomplete()` but note that the auto-completion parsers are not as powerful as `parse()` parsers.
 
 ### printManPage()
 
@@ -132,13 +136,13 @@ class ScanCommand implements ICommand {
 }
 ```
 
-The above example is highlighting couple of conventions as well. The synopsis lines should use `<CommandColored>{this.name}</CommandColored>` to distinguish the command body. If the parameters must be one of a set of values which share coloring, such as as keyword group, they should be represented by `<Colored background={someColor} foreground='black'>...</Colored>` component where `someColor` is the coloring shared by the set.
+The above example is highlighting couple of conventions as well. The synopsis lines should use `<CommandColored>{this.name}</CommandColored>` to mark the command body. If a parameter must be one of a set of values which share coloring, such as as keyword group, they should be represented by `<Colored background={someColor} foreground='black'>...</Colored>` component, note the "inverted" colors, where `someColor` is the coloring shared by the set.
 
 Note that if the built-in commands are not registered: `Gash.init(false)`, this method will never be called and is irrelevant.
 
 ### available()
 
-Availability functionality is of limited usefulness but I chose to port it from my [previous gash library](https://github.com/VHonzik/gash) anyway. It only applies to built-in `list` command and simply skips the command from `list` output if it returns `false`. One use-case might be if you want to unlock some commands later in the game or be temporary unavailable based on the game state. It does not change the fact the command is registered to *gash* and its `parse()` and `autocomplete()` will be called regardless the `available()`. That said the only built-in way for players to discover commands is the `list` command so unless player is told about the command elsewhere, not being in the `list` output means player has no knowledge of it.
+Availability functionality is of limited usefulness but I chose to port it from my [previous gash library](https://github.com/VHonzik/gash) anyway. It only applies to built-in `list` command and simply skips the command from `list` output if it returns `false`. One use-case might be if you want to unlock some commands later in the game or be temporarily unavailable based on the current game state. It does not change the fact the command is registered to *gash* and its `parse()` and `autocomplete()` will be called regardless of the return of `available()`. That said the only built-in way for players to discover commands is the `list` command so unless player is told about the command elsewhere, not being in the `list` output means player has no knowledge of it.
 
 Note that if the built-in commands are not registered: `Gash.init(false)`, this method will never be called and is irrelevant.
 

@@ -22,11 +22,12 @@ This library is a port and successor to my .NET core [gash](https://github.com/V
 I suggest starting with Typescript template of [Create React App](https://create-react-app.dev/docs/getting-started#creating-a-typescript-app).
 
 ### Installation
+
 You can install the package with npm: `npm install web-gash`
 
 ### Set-up
 
-First we need to initialize the gash library:
+First we need to initialize the *gash* library:
 
 ```js
 // index.tsx/index.js or similar entry-point
@@ -40,7 +41,7 @@ ReactDOM.render(
 //...
 ```
 
-The default styling uses [Inconsolata](https://fonts.google.com/specimen/Inconsolata) font from Google Fonts library. I chose not to ship it with gash but you can easily add it to your app, for example with css import:
+The default styling uses [Inconsolata](https://fonts.google.com/specimen/Inconsolata) font from Google Fonts library. I chose not to ship it with *gash* but you can easily add it to your app, for example with css import:
 
 ```css
 /* Add to the top of index.css */

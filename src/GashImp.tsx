@@ -182,7 +182,7 @@ export class GashImp implements IGash {
     return key === tabKey;
   }
 
-  private tryAutocomplete(line: string): AutoCompleteResult {
+  public tryAutocomplete(line: string): AutoCompleteResult {
     const resultsData: AutoCompleteResult[] = [];
 
     for (const command of this.commands) {
