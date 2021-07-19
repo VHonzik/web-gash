@@ -104,16 +104,16 @@ export class GashImp implements IGash {
     this.writeLine(<Line systemMessage tabs={1}>{command.name}</Line>);
     this.writeLine(<Line systemMessage>SYNOPSIS</Line>);
     for (const synopsisLine of synopsisLines) {
-      this.writeLine(React.cloneElement(synopsisLine, {tabs: 1}));
+      this.writeLine(React.cloneElement(synopsisLine, {tabs: synopsisLine.props.tabs || 1}));
     }
     this.writeLine(<Line systemMessage>DESCRIPTION</Line>);
     for (const descriptionLine of descriptionLines) {
-      this.writeLine(React.cloneElement(descriptionLine, {tabs: 1}));
+      this.writeLine(React.cloneElement(descriptionLine, {tabs: descriptionLine.props.tabs || 1}));
     }
     if (optionsLines !== undefined) {
       this.writeLine(<Line systemMessage>OPTIONS</Line>);
       for (const optionLine of optionsLines) {
-        this.writeLine(React.cloneElement(optionLine, {tabs: 1}));
+        this.writeLine(React.cloneElement(optionLine, {tabs: optionLine.props.tabs || 1}));
       }
     }
     this.writeLine(<Line />);

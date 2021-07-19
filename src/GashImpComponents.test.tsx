@@ -3,6 +3,7 @@ import { render, screen, waitFor} from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
 import { Line } from './components/Line';
 import { Prompt, Cursor, InputText, GashImpl, Input, Output } from './GashImp';
+import ICommand, { AutoCompleteResultType } from './ICommand';
 
 describe('Prompt component', function() {
   it('renders props promptText', function() {
@@ -140,4 +141,30 @@ describe('Output component', function() {
 
     expect(screen.queryByText(/Bar/i)).not.toBeInTheDocument();
   });
+  it('outputs lines when writeManPage is called', function() {
+    const fakeCommand: ICommand = {
+      name: 'Baz',
+      parse: function() { return {success: false }},
+      autocomplete: function() {return { type: AutoCompleteResultType.NotMatching, fixedValue: ''}},
+      available: function() { return false; },
+      printManPage: function() { }
+    }
+
+    act(() => {
+      render(<Output />);
+    });
+
+    act(() => {
+      GashImpl.writeManPage(fakeCommand, [<Line tabs={2}>Foo</Line>], [<Line>Bar</Line>]);
+    });
+
+    const nameElement = screen.getAllByText(/Baz/i);
+    expect(nameElement.length).toBeGreaterThan(0);
+
+    const synopsisLineElement = screen.getByText(/Foo/i);
+    expect(synopsisLineElement).toBeInTheDocument();
+
+    const descriptionLineElement = screen.getByText(/Bar/i);
+    expect(descriptionLineElement).toBeInTheDocument();
+  })
 });

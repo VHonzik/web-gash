@@ -102,6 +102,7 @@ export interface IGash {
     *    `optionsLines`
     *
     * The built-in commands `man` and `list` use this function.
+    * Note that the `synopsisLines`, `descriptionLines` or `optionsLines` elements are cloned (`React.cloneElement`) prior to being written. Additionally if their `props` do not include `LineProps.tabs`, the cloned element will have the `props.tabs` set to 1 in order to automatically align the lines as show above.
     *
     * @param command Command to print manual page for. Its `command.name()` will be used as noted above.
     * @param synopsisLines Lines that briefly show the syntax of the command. See built-in commands for examples.
