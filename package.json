@@ -11,7 +11,8 @@
   ],
   "scripts": {
     "build": "rollup -c",
-    "test": "jest --coverage"
+    "test": "jest",
+    "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },
   "repository": {
     "type": "git",
@@ -38,6 +39,7 @@
     "@types/jest": "^26.0.24",
     "@types/react": "^17.0.13",
     "@types/react-dom": "^17.0.8",
+    "coveralls": "^3.1.1",
     "jest": "^27.0.6",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
