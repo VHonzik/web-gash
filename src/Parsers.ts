@@ -862,6 +862,67 @@ class TextParamAutoCompleter implements LowLevelAutoCompleter {
   }
 }
 
+class SingleWordTextParamAutoCompleter implements LowLevelAutoCompleter {
+  constructor(private words: Array<string>) {
+  }
+
+  private getCommonPrefix(partialMatches: Array<string>): string {
+    let charShared = (index: number) => partialMatches.map(partialMatch => partialMatch[index]).every((character, _, array) => character.toLowerCase() === array[0].toLowerCase());
+    let sharedLength = 0;
+    for (; charShared(sharedLength); sharedLength++) {
+    }
+    if (sharedLength > 0) {
+      return partialMatches[0].slice(0, sharedLength);
+    } else {
+      return '';
+    }
+  }
+
+  autocomplete(input: string, initialResult: LowLevelAutoCompleteResult, index?: number): LowLevelAutoCompleteResult {
+    const trimmedInput = index !== undefined ? input.slice(index) : input;
+    const masalaOutput = singleWordTextParameter().parse(Streams.ofString(trimmedInput));
+    const result = {...initialResult};
+    const exactMatches: string[] = [];
+    const partialMatches: string[] = [];
+    if (masalaOutput.isAccepted()) {
+      const masalaValueLC = masalaOutput.value.toLowerCase();
+      for (const word of this.words) {
+        const wordLC = word.toLowerCase();
+        if (masalaValueLC === wordLC) {
+          exactMatches.push(word);
+        } else if (wordLC.substring(0, masalaValueLC.length) === masalaValueLC) {
+          partialMatches.push(word);
+        }
+      }
+
+      if (exactMatches.length > 0) {
+        result.type = AutoCompleteResultType.AlreadyMatching;
+        result.fixedValue += ' ' + exactMatches[0];
+        result.position = initialResult.position + masalaOutput.location();
+      } else if (partialMatches.length === 1) {
+        result.type = AutoCompleteResultType.SingleMatchFound;
+        result.fixedValue += ' ' + partialMatches[0];
+      } else if (partialMatches.length > 1) {
+        result.type = AutoCompleteResultType.MultipleMatchesFound;
+        result.fixedValue += ' ' + this.getCommonPrefix(partialMatches);
+      } else {
+        result.type = AutoCompleteResultType.NotMatching;
+      }
+    } else {
+      result.type = AutoCompleteResultType.NotMatching;
+    }
+
+    return result;
+  }
+
+  then(ac: LowLevelAutoCompleter): LowLevelAutoCompleter {
+    return new SequenceAutoCompleter(this, ac);
+  }
+  or(ac: LowLevelAutoCompleter): LowLevelAutoCompleter {
+    return new OrAutoCompleter(this, ac);
+  }
+}
+
 class NumberParamAutoCompleter implements LowLevelAutoCompleter {
   autocomplete(input: string, initialResult: LowLevelAutoCompleteResult, index?: number): LowLevelAutoCompleteResult {
     const trimmedInput = index !== undefined ? input.slice(index) : input;
@@ -937,6 +998,14 @@ function AutoCompleteOptions(): LowLevelAutoCompleter { return new OptionsAutoCo
  * @returns `LowLevelAutoCompleter` that can be used in `CommandAutoCompleter` as `paramsAutoCompleter` parameter or as a part of a chain of `LowLevelAutoCompleter`s in there.
  */
 export function AutoCompleteTextParam(words: Array<string>): LowLevelAutoCompleter { return new TextParamAutoCompleter(words); }
+
+/**
+ * Low level parser that can be used to auto-complete a command's single-word text parameter given an array of possible candidates.
+ * @param words Array of words to check each as a possible candidate for auto-completion.
+ * @returns `LowLevelAutoCompleter` that can be used in `CommandAutoCompleter` as `paramsAutoCompleter` parameter or as a part of a chain of `LowLevelAutoCompleter`s in there.
+ */
+export function AutoCompleteSingleWordTextParam(words: Array<string>): LowLevelAutoCompleter { return new SingleWordTextParamAutoCompleter(words); }
+
 /**
  * Low level parser that can be used to auto-complete command text parameter given an array of possible keywords.
  * @param keywords Array of keywords to check each as a possible candidate for auto-completion. `IKeyword.name()` will be used as the target string candidate.

@@ -1,6 +1,6 @@
 {
   "name": "web-gash",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Terminal web game framework in React.",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "build": "rollup -c",
-    "test": "jest"
+    "test": "jest --coverage"
   },
   "repository": {
     "type": "git",

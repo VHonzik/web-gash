@@ -1,4 +1,5 @@
-import { AutoCompleteResult, AutoCompleteResultType, AutoCompleteTextParam, CommandAutoCompleter, CommandParser, ICommand, NumberParameter, ParsingFailureReason, ParsingResult, SingleWordTextParameter, TextParameter } from ".";
+import { AutoCompleteResult, AutoCompleteResultType, AutoCompleteTextParam, CommandAutoCompleter, CommandParser, ICommand, IKeyword, NumberParameter, ParsingFailureReason, ParsingResult, SingleWordTextParameter, TextParameter } from ".";
+import { AutoCompleteKeywords, AutoCompleteNumber, AutoCompleteSingleWordTextParam } from "./Parsers";
 
 class MockCommand implements ICommand {
   name: string;
@@ -17,6 +18,17 @@ class MockCommand implements ICommand {
   }
   constructor(commandName: string, private availableResult: boolean) {
     this.name = commandName;
+  }
+}
+
+class MockKeyword implements IKeyword {
+  name(): string {
+    return this.keywordName;
+  }
+  printManPage(): void {
+    throw new Error("Method not implemented.");
+  }
+  constructor(private keywordName: string) {
   }
 }
 
@@ -195,17 +207,17 @@ describe('CommandAutoCompleter', function() {
 });
 
 describe('CommandAutoCompleter with single param', function() {
-  it('auto-completes one parameter', function() {
+  it('auto-completes one text parameter', function() {
     const result = CommandAutoCompleter(testCommand, AutoCompleteTextParam(['bar'])).autocomplete('test b');
     expect(result.type).toBe(AutoCompleteResultType.SingleMatchFound);
     expect(result.fixedValue).toBe('test bar');
   });
-  it('returns already matching on valid command with one param', function() {
+  it('returns already matching on valid command with one text param', function() {
     const result = CommandAutoCompleter(testCommand, AutoCompleteTextParam(['bar'])).autocomplete('test bar');
     expect(result.type).toBe(AutoCompleteResultType.AlreadyMatching);
     expect(result.fixedValue).toBe('test bar');
   });
-  it('auto-completes one parameter from distinct choices', function() {
+  it('auto-completes one text parameter from distinct choices', function() {
     const result = CommandAutoCompleter(testCommand, AutoCompleteTextParam(['bar', 'foo'])).autocomplete('test b');
     expect(result.type).toBe(AutoCompleteResultType.SingleMatchFound);
     expect(result.fixedValue).toBe('test bar');
@@ -215,7 +227,7 @@ describe('CommandAutoCompleter with single param', function() {
     expect(result.type).toBe(AutoCompleteResultType.MultipleMatchesFound);
     expect(result.fixedValue).toBe('test foo');
   });
-  it('auto-completes one parameter with flags', function() {
+  it('auto-completes one text parameter with flags', function() {
     const result = CommandAutoCompleter(testCommand, AutoCompleteTextParam(['bar'])).autocomplete('test -a --foo b');
     expect(result.type).toBe(AutoCompleteResultType.SingleMatchFound);
     expect(result.fixedValue).toBe('test -a --foo bar');
@@ -223,6 +235,53 @@ describe('CommandAutoCompleter with single param', function() {
   it('fails no matches', function() {
     const result = CommandAutoCompleter(testCommand, AutoCompleteTextParam(['foo', 'bar'])).autocomplete('test lol');
     expect(result.type).toBe(AutoCompleteResultType.NotMatching);
+  });
+  it('already matches one integer number parameter', function() {
+    const result = CommandAutoCompleter(testCommand, AutoCompleteNumber()).autocomplete('test 1');
+    expect(result.type).toBe(AutoCompleteResultType.AlreadyMatching);
+    expect(result.fixedValue).toBe('test 1');
+  });
+  it('already matches one floating number parameter', function() {
+    const result = CommandAutoCompleter(testCommand, AutoCompleteNumber()).autocomplete('test 1.1');
+    expect(result.type).toBe(AutoCompleteResultType.AlreadyMatching);
+    expect(result.fixedValue).toBe('test 1.1');
+  });
+  it('auto-completes one keyword parameter', function() {
+    const mockKeyword = new MockKeyword('foo');
+    const result = CommandAutoCompleter(testCommand, AutoCompleteKeywords([mockKeyword])).autocomplete('test f');
+    expect(result.type).toBe(AutoCompleteResultType.SingleMatchFound);
+    expect(result.fixedValue).toBe('test foo');
+  });
+  it('auto-completes one single-word text parameter', function() {
+    const result = CommandAutoCompleter(testCommand, AutoCompleteSingleWordTextParam(['foo', 'bar'])).autocomplete('test f');
+    expect(result.type).toBe(AutoCompleteResultType.SingleMatchFound);
+    expect(result.fixedValue).toBe('test foo');
+  });
+  it('fails multi-word with single-word text parameter', function() {
+    const result = CommandAutoCompleter(testCommand, AutoCompleteSingleWordTextParam(['foo', 'bar'])).autocomplete('test foo bar');
+    expect(result.type).toBe(AutoCompleteResultType.AlreadyMatching);
+    expect(result.fixedValue).toBe('test foo');
+  });
+});
+
+describe('CommandAutoCompleter with more params', function() {
+  it('auto-completes first text param', function() {
+    const result = CommandAutoCompleter(testCommand, AutoCompleteTextParam(['bar']).then(AutoCompleteNumber())).autocomplete('test b');
+    expect(result.type).toBe(AutoCompleteResultType.SingleMatchFound);
+    expect(result.fixedValue).toBe('test bar');
+  });
+  it('auto-completes second text param', function() {
+    const result = CommandAutoCompleter(testCommand, AutoCompleteNumber().then(AutoCompleteTextParam(['bar']))).autocomplete('test 1 b');
+    expect(result.type).toBe(AutoCompleteResultType.SingleMatchFound);
+    expect(result.fixedValue).toBe('test 1 bar');
+  });
+  it('already matches complex command', function() {
+    const mockKeyword = new MockKeyword('foo');
+    const keywords = AutoCompleteKeywords([mockKeyword]);
+    const textParams = AutoCompleteSingleWordTextParam(['bar', 'lol']);
+    const result = CommandAutoCompleter(testCommand, AutoCompleteNumber().then(textParams).then(keywords)).autocomplete('test 1 bar foo');
+    expect(result.type).toBe(AutoCompleteResultType.AlreadyMatching);
+    expect(result.fixedValue).toBe('test 1 bar foo');
   });
 });
 

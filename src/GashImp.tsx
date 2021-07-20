@@ -190,6 +190,11 @@ export class GashImp implements IGash {
     }
 
     const successes = resultsData.filter(resultData => resultData.type === AutoCompleteResultType.SingleMatchFound || resultData.type === AutoCompleteResultType.MultipleMatchesFound);
+    const alreadyMatching = resultsData.filter(resultData => resultData.type === AutoCompleteResultType.AlreadyMatching);
+
+    if (alreadyMatching.length === 1) {
+      return alreadyMatching[0];
+    }
 
     if (successes.length === 1) {
       return successes[0];

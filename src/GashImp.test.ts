@@ -184,4 +184,24 @@ describe('GashImpl', function() {
     expect(gash.preCursorInput()).toBe('bar');
     expect(gash.postCursorInput()).toBe('');
   });
+  it('prefers already matching auto-completion over single match', function() {
+    const gash: GashImp = new GashImp();
+    gash.init(false);
+
+    const mockCommandA = new MockCommand();
+    const mockCommandB = new MockCommand();
+
+    gash.registerCommand(mockCommandA);
+    gash.registerCommand(mockCommandB);
+
+    mockCommandA.autocomplete.mockReturnValueOnce({ type: AutoCompleteResultType.AlreadyMatching, fixedValue: 'foo' });
+    mockCommandB.autocomplete.mockReturnValueOnce({ type: AutoCompleteResultType.SingleMatchFound, fixedValue: 'foobar' });
+
+    const result = gash.tryAutocomplete('foo');
+
+    expect(mockCommandA.autocomplete.mock.calls.length).toBe(1);
+    expect(mockCommandB.autocomplete.mock.calls.length).toBe(1);
+
+    expect(result.type).toBe(AutoCompleteResultType.AlreadyMatching);
+  })
 });
