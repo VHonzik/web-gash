@@ -262,9 +262,19 @@ describe('CommandAutoCompleter with single param', function() {
     expect(result.type).toBe(AutoCompleteResultType.SingleMatchFound);
     expect(result.fixedValue).toBe('test foo');
   });
+  it('auto-completes one single-word text parameter with between different length options', function() {
+    const result = CommandAutoCompleter(testCommand, AutoCompleteSingleWordTextParam(['foo', 'foobar'])).autocomplete('test f');
+    expect(result.type).toBe(AutoCompleteResultType.MultipleMatchesFound);
+    expect(result.fixedValue).toBe('test foo');
+  });
   it('fails multi-word with single-word text parameter', function() {
     const result = CommandAutoCompleter(testCommand, AutoCompleteSingleWordTextParam(['foo', 'bar'])).autocomplete('test foo bar');
     expect(result.type).toBe(AutoCompleteResultType.AlreadyMatching);
+    expect(result.fixedValue).toBe('test foo');
+  });
+  it('does not throw exception with multi-word option in single-word text parameter', function() {
+    const result = CommandAutoCompleter(testCommand, AutoCompleteSingleWordTextParam(['foo', 'foo bar'])).autocomplete('test f');
+    expect(result.type).toBe(AutoCompleteResultType.MultipleMatchesFound);
     expect(result.fixedValue).toBe('test foo');
   });
   it('must reach the end to return single match', function() {

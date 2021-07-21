@@ -801,20 +801,40 @@ class CommandBodyAutoCompleter implements LowLevelAutoCompleter {
   }
 }
 
-class TextParamAutoCompleter implements LowLevelAutoCompleter {
-  constructor(private words: Array<string>) {
+function getCommonPrefix(partialMatches: Array<string>): string {
+  let minLength: number = partialMatches.length > 0 ? partialMatches[0].length : 0;
+  for (let i = 1; i < partialMatches.length; i++) {
+    minLength = Math.min(minLength, partialMatches[i].length);
+
+  }
+  let sharedLength: number = 0;
+  for (let i = 0; i < minLength; i++) {
+    const character = partialMatches[0][i].toLowerCase();
+    let allMatch: boolean = true;
+
+    for (let j = 0; j < partialMatches.length; j++) {
+      const partialMatch = partialMatches[j];
+      if (partialMatch[i].toLowerCase() !== character) {
+        allMatch = false;
+        break;
+      }
+    }
+
+    if (allMatch) {
+      sharedLength += 1;
+    }
+
   }
 
-  private getCommonPrefix(partialMatches: Array<string>): string {
-    let charShared = (index: number) => partialMatches.map(partialMatch => partialMatch[index]).every((character, _, array) => character.toLowerCase() === array[0].toLowerCase());
-    let sharedLength = 0;
-    for (; charShared(sharedLength); sharedLength++) {
-    }
-    if (sharedLength > 0) {
-      return partialMatches[0].slice(0, sharedLength);
-    } else {
-      return '';
-    }
+  if (sharedLength > 0) {
+    return partialMatches[0].slice(0, sharedLength);
+  } else {
+    return '';
+  }
+}
+
+class TextParamAutoCompleter implements LowLevelAutoCompleter {
+  constructor(private words: Array<string>) {
   }
 
   autocomplete(input: string, initialResult: LowLevelAutoCompleteResult, index?: number): LowLevelAutoCompleteResult {
@@ -843,7 +863,7 @@ class TextParamAutoCompleter implements LowLevelAutoCompleter {
         result.fixedValue += ' ' + partialMatches[0];
       } else if (partialMatches.length > 1 && masalaOutput.isEos()) {
         result.type = AutoCompleteResultType.MultipleMatchesFound;
-        result.fixedValue += ' ' + this.getCommonPrefix(partialMatches);
+        result.fixedValue += ' ' + getCommonPrefix(partialMatches);
       } else {
         result.type = AutoCompleteResultType.NotMatching;
       }
@@ -864,18 +884,6 @@ class TextParamAutoCompleter implements LowLevelAutoCompleter {
 
 class SingleWordTextParamAutoCompleter implements LowLevelAutoCompleter {
   constructor(private words: Array<string>) {
-  }
-
-  private getCommonPrefix(partialMatches: Array<string>): string {
-    let charShared = (index: number) => partialMatches.map(partialMatch => partialMatch[index]).every((character, _, array) => character.toLowerCase() === array[0].toLowerCase());
-    let sharedLength = 0;
-    for (; charShared(sharedLength); sharedLength++) {
-    }
-    if (sharedLength > 0) {
-      return partialMatches[0].slice(0, sharedLength);
-    } else {
-      return '';
-    }
   }
 
   autocomplete(input: string, initialResult: LowLevelAutoCompleteResult, index?: number): LowLevelAutoCompleteResult {
@@ -904,7 +912,7 @@ class SingleWordTextParamAutoCompleter implements LowLevelAutoCompleter {
         result.fixedValue += ' ' + partialMatches[0];
       } else if (partialMatches.length > 1 && masalaOutput.isEos()) {
         result.type = AutoCompleteResultType.MultipleMatchesFound;
-        result.fixedValue += ' ' + this.getCommonPrefix(partialMatches);
+        result.fixedValue += ' ' + getCommonPrefix(partialMatches);
       } else {
         result.type = AutoCompleteResultType.NotMatching;
       }
