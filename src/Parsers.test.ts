@@ -204,6 +204,11 @@ describe('CommandAutoCompleter', function() {
     expect(result.type).toBe(AutoCompleteResultType.AlreadyMatching);
     expect(result.fixedValue).toBe('test --foo');
   });
+  it('must reach the end to consider flags ', function() {
+    const result = CommandAutoCompleter(testCommand).autocomplete('te -a');
+    expect(result.type).toBe(AutoCompleteResultType.NotMatching);
+    expect(result.fixedValue).toBe('');
+  });
 });
 
 describe('CommandAutoCompleter with single param', function() {
@@ -261,6 +266,11 @@ describe('CommandAutoCompleter with single param', function() {
     const result = CommandAutoCompleter(testCommand, AutoCompleteSingleWordTextParam(['foo', 'bar'])).autocomplete('test foo bar');
     expect(result.type).toBe(AutoCompleteResultType.AlreadyMatching);
     expect(result.fixedValue).toBe('test foo');
+  });
+  it('must reach the end to return single match', function() {
+    const result = CommandAutoCompleter(testCommand, AutoCompleteSingleWordTextParam(['foo'])).autocomplete('te bar');
+    expect(result.type).toBe(AutoCompleteResultType.NotMatching);
+    expect(result.fixedValue).toBe('');
   });
 });
 

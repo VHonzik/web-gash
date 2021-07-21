@@ -780,7 +780,7 @@ class CommandBodyAutoCompleter implements LowLevelAutoCompleter {
         result.type = AutoCompleteResultType.AlreadyMatching;
         result.fixedValue += this.command.name;
         result.position = initialResult.position + masalaOutput.location();
-      } else if (commandNameLC.substring(0, masalaValueLC.length) === masalaValueLC) {
+      } else if (commandNameLC.substring(0, masalaValueLC.length) === masalaValueLC && masalaOutput.isEos()) {
         result.type = AutoCompleteResultType.SingleMatchFound;
         result.fixedValue += this.command.name;
       } else {
@@ -838,10 +838,10 @@ class TextParamAutoCompleter implements LowLevelAutoCompleter {
         result.type = AutoCompleteResultType.AlreadyMatching;
         result.fixedValue += ' ' + exactMatches[0];
         result.position = initialResult.position + masalaOutput.location();
-      } else if (partialMatches.length === 1) {
+      } else if (partialMatches.length === 1 && masalaOutput.isEos()) {
         result.type = AutoCompleteResultType.SingleMatchFound;
         result.fixedValue += ' ' + partialMatches[0];
-      } else if (partialMatches.length > 1) {
+      } else if (partialMatches.length > 1 && masalaOutput.isEos()) {
         result.type = AutoCompleteResultType.MultipleMatchesFound;
         result.fixedValue += ' ' + this.getCommonPrefix(partialMatches);
       } else {
@@ -899,10 +899,10 @@ class SingleWordTextParamAutoCompleter implements LowLevelAutoCompleter {
         result.type = AutoCompleteResultType.AlreadyMatching;
         result.fixedValue += ' ' + exactMatches[0];
         result.position = initialResult.position + masalaOutput.location();
-      } else if (partialMatches.length === 1) {
+      } else if (partialMatches.length === 1 && masalaOutput.isEos()) {
         result.type = AutoCompleteResultType.SingleMatchFound;
         result.fixedValue += ' ' + partialMatches[0];
-      } else if (partialMatches.length > 1) {
+      } else if (partialMatches.length > 1 && masalaOutput.isEos()) {
         result.type = AutoCompleteResultType.MultipleMatchesFound;
         result.fixedValue += ' ' + this.getCommonPrefix(partialMatches);
       } else {

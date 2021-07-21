@@ -1,6 +1,17 @@
 language: node_js
 node_js:
-  - '16'
+- '16'
 script:
-  - npm test
-  - npm run coveralls
+- npm test
+- npm run coveralls
+- npm run build
+deploy:
+  provider: npm
+  email: honzik.vaclav@gmail.com
+  api_key:
+    secure: Bj0C9KlXGH6JM9ibT0fQoHZIrp52+6QotiP6b/4DeRmzKnfV8YLsdFusCGj2XkjNAsUCPDt0lPEUVFMli3+k7XRaTG1x8nk0YsVUzkMhUe02GT4jqE//Ve9ZpU/j0H1j5VM/It0jyP1vNcYv2q6qZgtqnB+2dhFToTKDZRdGKjO2ifMeQlBCb3YTzZgioGpnHz7kpUl31nhyX9NWH5V5So0i5u5Vt6UCKrjTWwtAvhx+82xLK455A1Ye+oILybOUgdI6t6yUGV4z0lvqNA/+vV7tEkp+mIsMsxFdDkT69qcAy832WCwLAKkOpWotaFTDJKqSnpeXmhgu6+38awhvwik7PBHQUcQN1ZsvoJ0KKZaSEMsgXbzrJT/LtAVJsJOoyB43WU9PQGJ6aWuffQwbt/dyDgVSLa87I9dIOjYzFrPoK1kc3DoeHOI92N4IbcS/473Yb/lI4LG2wHMQ6xqqWNrKybsNDiNO+5uxDTrFyuKW6d5VcpdvdyoGx1GBeJ6IYXMLkFiNvIbc/ywd44pARC4U+UcV4gDregCN5URfSTZr2M3bs/5Y/aiKNsc2Dv4lUIk3OlP881TzF3e0u6dZ7BUxGXbIynfnXPfeElvpO+vQCRDiC6FzZL08mderUHShhIptX0KUoBQ7+PY7lYObNzb7zftEx1eUiKxg0tciERs=
+  on:
+    tags: true
+    repo: VHonzik/web-gash
+    branch: main
+  skip_cleanup: 'true'
