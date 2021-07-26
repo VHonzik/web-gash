@@ -70,6 +70,7 @@ describe('CommandParser', function() {
     const result = CommandParser(testCommand, undefined, [{short: 'b'}]).parse('test -a');
     expect(result.success).toBe(false);
     expect(result.failureReason).toBe(ParsingFailureReason.UnrecognizedOption);
+    expect(result.command).toBe(testCommand.name);
   });
   it('handles not used option', function(){
     const result = CommandParser(testCommand, undefined, [{short: 'a'}]).parse('test');
@@ -107,16 +108,19 @@ describe('CommandParser with single text param', function() {
     const result = CommandParser(testCommand, TextParameter()).parse('test');
     expect(result.success).toBe(false);
     expect(result.failureReason).toBe(ParsingFailureReason.MissingParam);
+    expect(result.command).toBe(testCommand.name);
   });
   it('fails with only option', function(){
     const result = CommandParser(testCommand, TextParameter(), [{short: 'a'}]).parse('test -a');
     expect(result.success).toBe(false);
     expect(result.failureReason).toBe(ParsingFailureReason.MissingParam);
+    expect(result.command).toBe(testCommand.name);
   });
   it('fails number', function(){
     const result = CommandParser(testCommand, TextParameter()).parse('test 10');
     expect(result.success).toBe(false);
     expect(result.failureReason).toBe(ParsingFailureReason.MissingParam);
+    expect(result.command).toBe(testCommand.name);
   });
 });
 

@@ -203,5 +203,16 @@ describe('GashImpl', function() {
     expect(mockCommandB.autocomplete.mock.calls.length).toBe(1);
 
     expect(result.type).toBe(AutoCompleteResultType.AlreadyMatching);
-  })
+  });
+  it('calls onTerminalMounted when triggered', function() {
+    const callback: jest.Mock<void, []> = jest.fn<void, []>();
+
+    const gash: GashImp = new GashImp();
+    gash.init(false);
+    gash.onTerminalMounted(callback);
+
+    gash.outputMounted();
+
+    expect(callback.mock.calls.length).toBe(1);
+  });
 });

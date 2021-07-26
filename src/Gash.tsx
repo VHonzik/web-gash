@@ -14,6 +14,7 @@ export interface IGash {
    *
    * @remarks
    * Should be called during the application initialization, e.g. in index.tsx or index.js before `ReactDOM.render`.
+   * Note that the Terminal React component might not be mounted immediately after this call. To write any introductory lines you can use `IGash.onTerminalMounted` event.
    *
    * @param registerBuiltInCommands Whether the built-in commands `list` and `man` should be registered on init. Defaults to `true`.
    */
@@ -110,6 +111,17 @@ export interface IGash {
     * @param optionsLines A Line for each possible option that names it and describes what it does.
     */
    writeManPage(command: ICommand, synopsisLines: JSX.Element[], descriptionLines: JSX.Element[], optionsLines?: JSX.Element[]): void;
+
+   /**
+    * An event for mounting of the Terminal React component.
+    *
+    * @remarks
+    * Only once the terminal is mounted it is ready to receive and display lines from Gash.
+    * This is ideal for any welcome or introductory messages to the player.
+    *
+    * @param callback Callback function that will be invoked once the terminal has been mounted.
+    */
+   onTerminalMounted(callback: () => void): void;
 }
 
 /**

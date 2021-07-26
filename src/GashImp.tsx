@@ -14,6 +14,7 @@ interface Events {
   outputTempLinesCleared: () => void;
   inputActiveChanged: (active: boolean) => void;
   inputHandled: () => void;
+  outputMounted: () => void;
 }
 
 const backspaceKey : string  = 'Backspace';
@@ -119,6 +120,9 @@ export class GashImp implements IGash {
     this.writeLine(<Line />);
   }
 
+  onTerminalMounted(callback: () => void): void {
+    this.emitter.on('outputMounted', callback);
+  }
 
   public parseLineCommands(line: string) {
     let resultData = defaultParsingResultData;
@@ -348,6 +352,10 @@ export class GashImp implements IGash {
   public clearCurrentLine() {
     this.startCharacterBufferLine();
   }
+
+  public outputMounted() {
+    this.emitter.emit('outputMounted');
+  }
 }
 
 export const GashImpl = new GashImp();
@@ -466,12 +474,14 @@ export function Output() {
     const unbindTemp = GashImpl.on('outputTempLineChanged', (slot: number) => onTempLineChanged(slot));
     const unbindTempClear = GashImpl.on('outputTempLinesCleared', () => onTempLinesCleared());
 
+    GashImpl.outputMounted();
+
     return function cleanup() {
       unbind();
       unbindTemp();
       unbindTempClear();
     }
-  });
+  }, []);
 
   return (
     <div>

@@ -3,7 +3,18 @@ import { render, screen, waitFor} from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
 import { Line } from './components/Line';
 import { Prompt, Cursor, InputText, GashImpl, Input, Output } from './GashImp';
-import ICommand, { AutoCompleteResultType } from './ICommand';
+import ICommand, { AutoCompleteResult, ParsingFailureReason, ParsingResult } from './ICommand';
+
+const mockCommandName: string = 'Baz';
+class MockCommand implements ICommand {
+  name: string = mockCommandName;
+
+  parse: jest.Mock<ParsingResult, [string]> = jest.fn<ParsingResult, [string]>();
+  autocomplete: jest.Mock<AutoCompleteResult, [string]> = jest.fn<AutoCompleteResult, [string]>();
+
+  printManPage: jest.Mock<void, []> = jest.fn<void, []>();
+  available: jest.Mock<boolean, []> = jest.fn<boolean, []>();
+}
 
 describe('Prompt component', function() {
   it('renders props promptText', function() {
@@ -142,20 +153,14 @@ describe('Output component', function() {
     expect(screen.queryByText(/Bar/i)).not.toBeInTheDocument();
   });
   it('outputs lines when writeManPage is called', function() {
-    const fakeCommand: ICommand = {
-      name: 'Baz',
-      parse: function() { return {success: false }},
-      autocomplete: function() {return { type: AutoCompleteResultType.NotMatching, fixedValue: ''}},
-      available: function() { return false; },
-      printManPage: function() { }
-    }
+    const mockCommand = new MockCommand();
 
     act(() => {
       render(<Output />);
     });
 
     act(() => {
-      GashImpl.writeManPage(fakeCommand, [<Line tabs={2}>Foo</Line>], [<Line>Bar</Line>]);
+      GashImpl.writeManPage(mockCommand, [<Line tabs={2}>Foo</Line>], [<Line>Bar</Line>], [<Line>Lol</Line>]);
     });
 
     const nameElement = screen.getAllByText(/Baz/i);
@@ -166,5 +171,67 @@ describe('Output component', function() {
 
     const descriptionLineElement = screen.getByText(/Bar/i);
     expect(descriptionLineElement).toBeInTheDocument();
-  })
+
+    const optionsLineElement = screen.getByText(/Lol/i);
+    expect(optionsLineElement).toBeInTheDocument();
+  });
+  it('outputs lines from onTerminalMounted callback', function() {
+    const callback: jest.Mock<void, []> = jest.fn();
+    callback.mockImplementationOnce(() => {
+      GashImpl.writeLine(<Line>Foo</Line>);
+    });
+
+    act(() => {
+      GashImpl.onTerminalMounted(callback);
+      render(<Output />);
+    });
+
+    const introLine = screen.getByText(/Foo/i);
+    expect(introLine).toBeInTheDocument();
+  });
+
+  it('renders error when command returns ParsingFailureReason.MissingParam', function() {
+    const mockCommand = new MockCommand();
+    mockCommand.parse.mockReturnValue({ success: false, failureReason: ParsingFailureReason.MissingParam, command: mockCommandName });
+    GashImpl.commands = [mockCommand];
+
+    act(() => {
+      render(<Output />);
+    });
+
+    act(() => {
+      GashImpl.parseLineCommands(mockCommandName);
+    });
+
+    const errorLine = screen.getByText(/Missing required param\(s\)/i);
+    expect(errorLine).toBeInTheDocument();
+
+    const commandElement = screen.getByText(new RegExp(`${mockCommandName}`));
+    expect(commandElement).toBeInTheDocument();
+
+    GashImpl.commands = [];
+  });
+
+
+  it('renders error when command returns ParsingFailureReason.UnrecognizedOption', function() {
+    const mockCommand = new MockCommand();
+    mockCommand.parse.mockReturnValue({ success: false, failureReason: ParsingFailureReason.UnrecognizedOption, command: mockCommandName });
+    GashImpl.commands = [mockCommand];
+
+    act(() => {
+      render(<Output />);
+    });
+
+    act(() => {
+      GashImpl.parseLineCommands(mockCommandName);
+    });
+
+    const errorLine = screen.getByText(/Unknown option for a command/i);
+    expect(errorLine).toBeInTheDocument();
+
+    const commandElement = screen.getByText(new RegExp(`${mockCommandName}`));
+    expect(commandElement).toBeInTheDocument();
+
+    GashImpl.commands = [];
+  });
 });
