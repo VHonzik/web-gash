@@ -96,13 +96,13 @@ describe('Input component', function() {
     expect(inputElement).toBeVisible();
 
     act(() => {
-      GashImpl.enableInput(false);
+      GashImpl.disableInput();
     });
 
     expect(inputElement).not.toBeVisible();
 
     act(() => {
-      GashImpl.enableInput(true);
+      GashImpl.enableInput();
     });
 
     expect(inputElement).toBeVisible();

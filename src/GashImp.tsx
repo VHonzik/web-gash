@@ -52,6 +52,10 @@ export class GashImp implements IGash {
   private commandHistory: Array<string> = [];
   private historyCalledOnLineYet: boolean = false;
 
+  /* Input routing */
+
+  private inputRoutingCallback: ((event: KeyboardEvent) => boolean) | undefined = undefined;
+
   private emitter: Emitter<Events> = new Emitter<Events>();
 
   init(registerBuiltInCommands?: boolean): void {
@@ -94,9 +98,18 @@ export class GashImp implements IGash {
     this.emitter.emit('outputChanged');
   }
 
-  enableInput(enable: boolean): void {
-    this.inputActive = enable;
-    this.emitter.emit('inputActiveChanged', this.inputActive);
+  disableInput(): void {
+    if (this.inputActive === true) {
+      this.inputActive = false;
+      this.emitter.emit('inputActiveChanged', this.inputActive);
+    }
+  }
+
+  enableInput(): void {
+    if (this.inputActive === false) {
+      this.inputActive = true;
+      this.emitter.emit('inputActiveChanged', this.inputActive);
+    }
   }
 
   writeManPage(command: ICommand, synopsisLines: JSX.Element[], descriptionLines: JSX.Element[], optionsLines?: JSX.Element[]): void {
@@ -122,6 +135,14 @@ export class GashImp implements IGash {
 
   onTerminalMounted(callback: () => void): void {
     this.emitter.on('outputMounted', callback);
+  }
+
+  routeInput(inputCallback: (event: KeyboardEvent) => boolean): void {
+    this.inputRoutingCallback = inputCallback;
+  }
+
+  removeInputRouting(): void {
+    this.inputRoutingCallback = undefined;
   }
 
   public parseLineCommands(line: string) {
@@ -301,6 +322,11 @@ export class GashImp implements IGash {
   /* Input */
 
   public keyDown(event: KeyboardEvent) {
+    if (this.inputRoutingCallback !== undefined) {
+      if (this.inputRoutingCallback(event)) {
+        return;
+      }
+    }
     if (this.inputActive) {
       if (this.processAutocompleteInput(event)) {
         const resultData = this.tryAutocomplete(this.currentCharacterBufferInput);

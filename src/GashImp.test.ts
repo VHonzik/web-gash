@@ -118,6 +118,19 @@ describe('GashImpl', function() {
 
     expect(mockCommandA.autocomplete.mock.invocationCallOrder[0]).toBeLessThan(mockCommandB.autocomplete.mock.invocationCallOrder[0]);
   });
+  it('should return one success in autocompletion if there is only one success', function() {
+    const gash: GashImp = new GashImp();
+    const mockCommandA = new MockCommand();
+    gash.init(false);
+    gash.registerCommand(mockCommandA);
+
+    mockCommandA.autocomplete.mockReturnValueOnce({ type: AutoCompleteResultType.SingleMatchFound, fixedValue: 'bar' });
+
+    const result = gash.tryAutocomplete('foo');
+    expect(result.type).toBe(AutoCompleteResultType.SingleMatchFound);
+    expect(result.fixedValue).toBe('bar');
+
+  });
   it('handles keyboard input events', function() {
     const gash: GashImp = new GashImp();
     gash.init(false);
@@ -214,5 +227,70 @@ describe('GashImpl', function() {
     gash.outputMounted();
 
     expect(callback.mock.calls.length).toBe(1);
+  });
+  it('findAndWrite function return false if there is not match', function() {
+    const gash: GashImp = new GashImp();
+    gash.init(false);
+
+    expect(gash.findAndWriteCommandMan('foo')).toBe(false);
+    expect(gash.findAndWriteKeywordMan('bar')).toBe(false);
+  });
+  it('routes input when routeInput() is called', function () {
+    const callback: jest.Mock<boolean, [KeyboardEvent]> = jest.fn<boolean, [KeyboardEvent]>();
+
+    const gash: GashImp = new GashImp();
+    gash.init(false);
+    gash.routeInput(callback);
+
+    gash.keyDown(new KeyboardEvent('foo', {key: 'f'}));
+
+    expect(callback.mock.calls.length).toBe(1);
+    expect(callback.mock.calls[0][0].type).toBe('foo');
+    expect(callback.mock.calls[0][0].key).toBe('f');
+
+    gash.removeInputRouting();
+
+    gash.keyDown(new KeyboardEvent('bar', {key: 'b'}));
+
+    expect(callback.mock.calls.length).toBe(1);
+  });
+  it('prevents input processing when routing returns true', function () {
+    const callback: jest.Mock<boolean, [KeyboardEvent]> = jest.fn<boolean, [KeyboardEvent]>();
+
+    const gash: GashImp = new GashImp();
+    gash.init(false);
+    gash.routeInput(callback);
+
+    callback.mockReturnValueOnce(true);
+
+    gash.keyDown(new KeyboardEvent('foo', {key: 'f'}));
+
+    expect(callback.mock.calls.length).toBe(1);
+    expect(gash.preCursorInput()).toBe('');
+    expect(gash.postCursorInput()).toBe('');
+
+    gash.removeInputRouting();
+
+    gash.keyDown(new KeyboardEvent('bar', {key: 'b'}));
+
+    expect(callback.mock.calls.length).toBe(1);
+    expect(gash.preCursorInput()).toBe('b');
+    expect(gash.postCursorInput()).toBe('');
+  });
+  it('input routing works even with disabled input', function () {
+    const callback: jest.Mock<boolean, [KeyboardEvent]> = jest.fn<boolean, [KeyboardEvent]>();
+
+    const gash: GashImp = new GashImp();
+    gash.init(false);
+    gash.routeInput(callback);
+    gash.disableInput();
+
+    gash.keyDown(new KeyboardEvent('foo', {key: 'f'}));
+
+    expect(callback.mock.calls.length).toBe(1);
+    expect(callback.mock.calls[0][0].type).toBe('foo');
+    expect(callback.mock.calls[0][0].key).toBe('f');
+
+    gash.removeInputRouting();
   });
 });
