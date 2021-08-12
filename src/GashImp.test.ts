@@ -154,8 +154,28 @@ describe('GashImpl', function() {
     expect(gash.preCursorInput()).toBe('f');
     expect(gash.postCursorInput()).toBe('o');
 
-    // Typing delete key: 'f' -> cursor
+    // Typing left arrow key: cursor -> 'fo'
+    gash.keyDown(new KeyboardEvent('lAKeyboardPress', {key: 'ArrowLeft'}));
+    expect(gash.preCursorInput()).toBe('');
+    expect(gash.postCursorInput()).toBe('fo');
+
+    // Typing right arrow key: 'f' -> cursor -> 'o'
+    gash.keyDown(new KeyboardEvent('lAKeyboardPress', {key: 'ArrowRight'}));
+    expect(gash.preCursorInput()).toBe('f');
+    expect(gash.postCursorInput()).toBe('o');
+
+    // Typing 'o' key: 'f' -> 'o' -> cursor -> 'o'
+    gash.keyDown(new KeyboardEvent('fKeyboardPress', {key: 'o'}));
+    expect(gash.preCursorInput()).toBe('fo');
+    expect(gash.postCursorInput()).toBe('o');
+
+    // Typing delete key: 'f' -> 'o' -> cursor
     gash.keyDown(new KeyboardEvent('delKeyboardPress', {key: 'Delete'}));
+    expect(gash.preCursorInput()).toBe('fo');
+    expect(gash.postCursorInput()).toBe('');
+
+    // Typing backspace key: 'f' -> cursor
+    gash.keyDown(new KeyboardEvent('backSKeyboardPress', {key: 'Backspace'}));
     expect(gash.preCursorInput()).toBe('f');
     expect(gash.postCursorInput()).toBe('');
 
