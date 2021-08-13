@@ -20,15 +20,18 @@ const blank = () => C.charIn(' \t');
 const blanksOpDrop: () => VoidParser = () => blank().optrep().drop();
 const blankThenBlanksOpDrop: () => VoidParser = () => (blank().then(blank().optrep())).drop();
 const optionSymbol = () => C.char('-');
-const letterOrBlank = () => (C.letter().or(C.charIn(' \t')));
 const letterOrDash = () => (C.letter().or(C.char('-')));
 
 function commandBody() {
   return blanksOpDrop().then(C.letters()).first();
 }
 
+function blankWordOpRep() {
+ return (blank().rep().then(C.letters())).optrep();
+}
+
 function words() {
-  return C.letter().then(letterOrBlank().optrep()).map(values => values.join(''));
+  return C.letters().then(blankWordOpRep()).map(values => values.join(''));
 }
 
 function textParameter() {
@@ -84,6 +87,7 @@ export interface LowLevelParser {
    *
    * @remarks
    * If `this` parser succeeds the `ac` parser will be called on the remainder.
+   * Warning: `or()`-ing `optional()` parser will always ignore the second `or`-ed parses.
    * Easily implemented using `OrParser` for example with this one liner: `return new OrParser(this, p);`
    *
    * @param ac The low level parser that should be called instead of `this` parser if `this` parser fails.
@@ -94,6 +98,7 @@ export interface LowLevelParser {
    *
    * @remarks
    * If `this` parser fails the parsing will return to the previous parser last position and continue in the chain.
+   * Warning: `repeat()`-ing `optional()` parser leads to infinite recursion.
    * Easily implemented using `OptionalParser` for example with this one liner: `return new OptionalParser(this);`
    *
    * @param ac The low level parser that wraps `this` parser and catches failures.
@@ -105,6 +110,7 @@ export interface LowLevelParser {
    *
    * @remarks
    * If `this` parser succeeds it will be called recursively on the remainder until it fails.
+   * Warning: `repeat()`-ing `optional()` parser leads to infinite recursion.
    * Easily implemented using `RepetitionParser` for example with this one liner: `return new RepetitionParser(this);`
    *
    * @param ac The low level parser that repeats `this` parser.
@@ -231,7 +237,12 @@ export class RepetitionParser implements LowLevelParser {
   }
 
   parse(input: string, initialResult: LowLevelResult, index?: number): LowLevelResult {
-    return this.parseRecurse(input, initialResult, index);
+    const firstResult = this.parser.parse(input, initialResult, index);
+    if (firstResult.success) {
+      return this.parseRecurse(input, initialResult, index);
+    } else {
+      return firstResult;
+    }
   }
 
   parseRecurse(input: string, initialResult: LowLevelResult, index?: number): LowLevelResult {

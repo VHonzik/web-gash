@@ -1,5 +1,5 @@
 import { AutoCompleteResult, AutoCompleteResultType, AutoCompleteTextParam, CommandAutoCompleter, CommandParser, ICommand, IKeyword, NumberParameter, ParsingFailureReason, ParsingResult, SingleWordTextParameter, TextParameter } from ".";
-import { AutoCompleteKeywords, AutoCompleteNumber, AutoCompleteSingleWordTextParam } from "./Parsers";
+import { AutoCompleteKeywords, AutoCompleteNumber, AutoCompleteSingleWordTextParam, LowLevelResult, OptionalParser, OrParser, RepetitionParser, SequenceParser } from "./Parsers";
 
 class MockCommand implements ICommand {
   name: string;
@@ -339,5 +339,285 @@ describe('CommandAutoCompleter list use-case', function() {
   it('fails man', function() {
     const result = CommandAutoCompleter(listCommand).autocomplete('m');
     expect(result.type).toBe(AutoCompleteResultType.NotMatching);
+  });
+});
+
+const initialLowLevelResult: LowLevelResult = {
+  command: undefined,
+  options: [],
+  params: [],
+  position: 0,
+  success: true,
+}
+
+describe('SequenceParser', function() {
+  it('parses valid sequence', function() {
+    const parser = new SequenceParser(SingleWordTextParameter(), SingleWordTextParameter());
+    const result = parser.parse(' foo bar', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+  it('can be made optional', function() {
+    const parser = new SequenceParser(SingleWordTextParameter(), SingleWordTextParameter());
+    const result = parser.optional().parse('foo', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBe(0);
+  });
+  it('can be or-ed', function() {
+    const parser = new SequenceParser(SingleWordTextParameter(), SingleWordTextParameter());
+    let result = parser.or(SingleWordTextParameter()).parse(' foo', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+
+    result = parser.or(SingleWordTextParameter()).parse(' foo bar', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+  it('can be repeated', function() {
+    const parser = new SequenceParser(SingleWordTextParameter(), SingleWordTextParameter());
+    const result = parser.repeat().parse(' foo bar lol foo', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+  it('can be made into sequence', function() {
+    const parser = new SequenceParser(SingleWordTextParameter(), SingleWordTextParameter());
+    const result = parser.then(SingleWordTextParameter()).parse(' foo bar lol', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+});
+
+describe('OrParser', function() {
+  it('parses both options', function() {
+    const parser = new OrParser(SingleWordTextParameter(), NumberParameter());
+    let result = parser.parse(' foo', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+
+    result = parser.parse(' 1.0', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+  it('can be made optional', function() {
+    const parser = new OrParser(SingleWordTextParameter(), NumberParameter());
+    const result = parser.optional().parse('foo bar', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBe(0);
+  });
+  it('can be or-ed', function() {
+    const parser = new OrParser(SingleWordTextParameter(), NumberParameter());
+    let result = parser.or(TextParameter()).parse(' foo bar', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+
+    result = parser.or(TextParameter()).parse(' 1.0', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+  it('can be repeated', function() {
+    const parser = new OrParser(SingleWordTextParameter(), NumberParameter());
+    const result = parser.repeat().parse(' foo 1.0', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+  it('can be made into sequence', function() {
+    const parser = new OrParser(SingleWordTextParameter(), NumberParameter());
+    const result = parser.then(SingleWordTextParameter()).parse(' foo lol', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+});
+
+describe('OptionalParser', function() {
+  it('parses valid and invalid texts', function() {
+    const parser = new OptionalParser(SingleWordTextParameter());
+    let result = parser.parse(' foo', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+
+    result = parser.parse(' 1.0', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBe(0);
+  });
+  it('can be made optional', function() {
+    const parser = new OptionalParser(SingleWordTextParameter());
+    const result = parser.optional().parse('1.0', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBe(0);
+  });
+  it('can be or-ed', function() {
+    const parser = new OptionalParser(SingleWordTextParameter());
+    let result = parser.or(NumberParameter()).parse(' foo', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+
+    result = parser.or(NumberParameter()).parse(' 1.0', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    // Documented but perhaps not an ideal behavior as the optional first parser always eats whatever is thrown at it
+    expect(result.position).toBe(0);
+  });
+
+  // Infinite recursion that is at least documented
+  // it('can be repeated', function() {
+  //   const parser = new OptionalParser(SingleWordTextParameter());
+  //   const result = parser.repeat().parse(' foo bar', initialLowLevelResult, 0);
+  //   expect(result.success).toBe(true);
+  //   expect(result.position).toBeGreaterThan(0);
+  // });
+
+  it('can be made into sequence', function() {
+    const parser = new OptionalParser(SingleWordTextParameter());
+    const result = parser.then(SingleWordTextParameter()).parse(' foo lol', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+});
+
+describe('RepetitionParser', function() {
+  it('parses valid text', function() {
+    const parser = new RepetitionParser(SingleWordTextParameter());
+    let result = parser.parse(' foo bar', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+  it('can be made optional', function() {
+    const parser = new RepetitionParser(SingleWordTextParameter());
+    const result = parser.optional().parse('1.0', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBe(0);
+  });
+  it('can be or-ed', function() {
+    const parser = new RepetitionParser(SingleWordTextParameter());
+    let result = parser.or(NumberParameter()).parse(' foo bar', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+
+    result = parser.or(NumberParameter()).parse(' 1.0', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+  it('can be repeated', function() {
+    const parser = new RepetitionParser(SingleWordTextParameter());
+    const result = parser.repeat().parse(' foo bar lol', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+  it('can be made into sequence', function() {
+    const parser = new RepetitionParser(SingleWordTextParameter());
+    const result = parser.then(NumberParameter()).parse(' foo lol 1.0', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+});
+
+describe('SingleWordTextParameter', function() {
+  it('parses valid text', function() {
+    const parser = SingleWordTextParameter();
+    let result = parser.parse(' foo', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+  it('can be made optional', function() {
+    const parser = SingleWordTextParameter();
+    const result = parser.optional().parse('1.0', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBe(0);
+  });
+  it('can be or-ed', function() {
+    const parser = SingleWordTextParameter();
+    let result = parser.or(NumberParameter()).parse(' foo', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+
+    result = parser.or(NumberParameter()).parse(' 1.0', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+  it('can be repeated', function() {
+    const parser = SingleWordTextParameter();
+    const result = parser.repeat().parse(' foo bar', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+  it('can be made into sequence', function() {
+    const parser = SingleWordTextParameter();
+    const result = parser.then(NumberParameter()).parse(' foo 1.0', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+});
+
+describe('TextParameter', function() {
+  it('parses valid text', function() {
+    const parser = TextParameter();
+    let result = parser.parse(' foo bar', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+  it('can be made optional', function() {
+    const parser = TextParameter();
+    const result = parser.optional().parse('1.0', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBe(0);
+  });
+  it('can be or-ed', function() {
+    const parser = TextParameter();
+    let result = parser.or(NumberParameter()).parse(' foo', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+
+    result = parser.or(NumberParameter()).parse(' 1.0', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+  it('can be repeated', function() {
+    const parser = TextParameter();
+    const result = parser.repeat().parse(' foo bar', initialLowLevelResult, 0);
+    // This won't actually repeat the parser as the input is still one text parameter, no way currently to test this properly
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+  it('can be made into sequence', function() {
+    const parser = TextParameter();
+    const result = parser.then(NumberParameter()).parse(' foo bar 1.0', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+});
+
+describe('NumberParameter', function() {
+  it('parses valid number', function() {
+    const parser = NumberParameter();
+    let result = parser.parse(' 1.0', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+  it('can be made optional', function() {
+    const parser = NumberParameter();
+    const result = parser.optional().parse(' foo', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBe(0);
+  });
+  it('can be or-ed', function() {
+    const parser = NumberParameter();
+    let result = parser.or(SingleWordTextParameter()).parse(' foo', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+
+    result = parser.or(SingleWordTextParameter()).parse(' 1.0', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+  it('can be repeated', function() {
+    const parser = NumberParameter();
+    const result = parser.repeat().parse(' 1.0 2', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
+  });
+  it('can be made into sequence', function() {
+    const parser = NumberParameter();
+    const result = parser.then(SingleWordTextParameter()).parse(' 1.0 foo', initialLowLevelResult, 0);
+    expect(result.success).toBe(true);
+    expect(result.position).toBeGreaterThan(0);
   });
 });

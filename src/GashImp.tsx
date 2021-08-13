@@ -526,10 +526,7 @@ export interface PromptProps {
 }
 
 export function Prompt(props: PromptProps) {
-  let text = '$ ';
-  if (props.promptText !== undefined) {
-    text = props.promptText;
-  }
+  const text = props.promptText || '$\u00a0';
   return <span>{text}</span>
 }
 
